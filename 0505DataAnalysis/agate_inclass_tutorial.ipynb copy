@@ -1,0 +1,483 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 48,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "import agate"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 49,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "|----------------------+---------------|\n",
+      "|  column_names        | column_types  |\n",
+      "|----------------------+---------------|\n",
+      "|  last_name           | Text          |\n",
+      "|  first_name          | Text          |\n",
+      "|  age                 | Number        |\n",
+      "|  race                | Text          |\n",
+      "|  state               | Text          |\n",
+      "|  tags                | Text          |\n",
+      "|  crime               | Text          |\n",
+      "|  sentence            | Text          |\n",
+      "|  convicted           | Number        |\n",
+      "|  exonerated          | Number        |\n",
+      "|  dna                 | Boolean       |\n",
+      "|  dna_essential       | Text          |\n",
+      "|  mistake_witness     | Boolean       |\n",
+      "|  false_confession    | Boolean       |\n",
+      "|  perjury             | Boolean       |\n",
+      "|  false_evidence      | Boolean       |\n",
+      "|  official_misconduct | Boolean       |\n",
+      "|  inadequate_defense  | Boolean       |\n",
+      "|----------------------+---------------|\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "exonerations = agate.Table.from_csv('exonerations-20150828.csv')\n",
+    "\n",
+    "print exonerations\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 50,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<agate.Column: (True, True, True, None, None, ...)>\n"
+     ]
+    }
+   ],
+   "source": [
+    "print exonerations.columns[10]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 51,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<agate.Row: (u'Abbitt', u'Joseph Lamont', Decimal('31'), u'Black', u'NC', ...)>\n",
+      "True\n"
+     ]
+    }
+   ],
+   "source": [
+    "first_row = exonerations.rows[0]\n",
+    "print first_row\n",
+    "print first_row['dna']"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 52,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "211\n"
+     ]
+    }
+   ],
+   "source": [
+    "num_false_confessions = exonerations.aggregate(agate.Count('false_confession', True))\n",
+    "\n",
+    "print(num_false_confessions)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 53,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "26\n"
+     ]
+    }
+   ],
+   "source": [
+    "median_age = exonerations.aggregate(agate.Median('age'))\n",
+    "\n",
+    "print(median_age)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 54,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "9\n"
+     ]
+    }
+   ],
+   "source": [
+    "num_without_age = exonerations.aggregate(agate.Count('age', None))\n",
+    "\n",
+    "print(num_without_age)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 55,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "34\n"
+     ]
+    }
+   ],
+   "source": [
+    "mo = exonerations.aggregate(agate.Count('state', 'MO'))\n",
+    "print mo"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 56,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "with_age = exonerations.where(lambda row: row['age'] is not None)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 57,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "9\n"
+     ]
+    }
+   ],
+   "source": [
+    "old = len(exonerations.rows)\n",
+    "new = len(with_age.rows)\n",
+    "\n",
+    "print(old - new)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 58,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "26\n"
+     ]
+    }
+   ],
+   "source": [
+    "median_age = with_age.aggregate(agate.Median('age'))\n",
+    "\n",
+    "print(median_age)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 59,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "8\n"
+     ]
+    }
+   ],
+   "source": [
+    "with_years_in_prison = exonerations.compute([\n",
+    "    ('years_in_prison', agate.Change('convicted', 'exonerated'))\n",
+    "])\n",
+    "\n",
+    "median_years = with_years_in_prison.aggregate(agate.Median('years_in_prison'))\n",
+    "\n",
+    "print(median_years)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 60,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "full_names = exonerations.compute([\n",
+    "    ('full_name', agate.Formula(agate.Text(), lambda row: '%(first_name)s %(last_name)s' % row))\n",
+    "])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 61,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "with_computations = exonerations.compute([\n",
+    "    ('full_name', agate.Formula(agate.Text(), lambda row: '%(first_name)s %(last_name)s' % row)),\n",
+    "    ('years_in_prison', agate.Change('convicted', 'exonerated'))\n",
+    "])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 62,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "|------------+------------+-----+-----------+-------+---------+---------+------|\n",
+      "|  last_name | first_name | age | race      | state | tags    | crime   | ...  |\n",
+      "|------------+------------+-----+-----------+-------+---------+---------+------|\n",
+      "|  Murray    | Lacresha   |  11 | Black     | TX    | CV, F   | Murder  | ...  |\n",
+      "|  Adams     | Johnathan  |  12 | Caucasian | GA    | CV, P   | Murder  | ...  |\n",
+      "|  Harris    | Anthony    |  12 | Black     | OH    | CV      | Murder  | ...  |\n",
+      "|  Edmonds   | Tyler      |  13 | Caucasian | MS    |         | Murder  | ...  |\n",
+      "|  Handley   | Zachary    |  13 | Caucasian | PA    | A, CV   | Arson   | ...  |\n",
+      "|  Jimenez   | Thaddeus   |  13 | Hispanic  | IL    |         | Murder  | ...  |\n",
+      "|  Pacek     | Jerry      |  13 | Caucasian | PA    |         | Murder  | ...  |\n",
+      "|  Barr      | Jonathan   |  14 | Black     | IL    | CDC, CV | Murder  | ...  |\n",
+      "|  Brim      | Dominique  |  14 | Black     | MI    | F       | Assault | ...  |\n",
+      "|  Brown     | Timothy    |  14 | Black     | FL    |         | Murder  | ...  |\n",
+      "|------------+------------+-----+-----------+-------+---------+---------+------|\n"
+     ]
+    }
+   ],
+   "source": [
+    "sorted_by_age = exonerations.order_by('age')\n",
+    "\n",
+    "youngest_ten = sorted_by_age.limit(10)\n",
+    "\n",
+    "youngest_ten.print_table(max_columns=7)\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 63,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "age       Count\n",
+      "[10 - 20)   307 ▓░░░░░░░░░░░░░░░░░░░░░░░░                                       \n",
+      "[20 - 30)   718 ▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░      \n",
+      "[30 - 40)   377 ▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░                                 \n",
+      "[40 - 50)   176 ▓░░░░░░░░░░░░░░                                                 \n",
+      "[50 - 60)    53 ▓░░░░                                                           \n",
+      "[60 - 70)    10 ▓░                                                              \n",
+      "[80 - 90)     1 ▓                                                               \n",
+      "None          9 ▓░                                                              \n",
+      "                +---------------+---------------+--------------+---------------+\n",
+      "                0              200             400            600            800\n"
+     ]
+    }
+   ],
+   "source": [
+    "binned_ages = exonerations.bins('age', 10, 0, 100)\n",
+    "binned_ages.print_bars('age', 'Count', width=80)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 64,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "by_state = exonerations.group_by('state')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 65,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "ename": "AttributeError",
+     "evalue": "'module' object has no attribute 'Length'",
+     "output_type": "error",
+     "traceback": [
+      "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+      "\u001b[0;31mAttributeError\u001b[0m                            Traceback (most recent call last)",
+      "\u001b[0;32m<ipython-input-65-c0d311b3b770>\u001b[0m in \u001b[0;36m<module>\u001b[0;34m()\u001b[0m\n\u001b[1;32m      1\u001b[0m state_totals = by_state.aggregate([\n\u001b[0;32m----> 2\u001b[0;31m         \u001b[0;34m(\u001b[0m\u001b[0;34m'count'\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0magate\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mLength\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      3\u001b[0m ])\n\u001b[1;32m      4\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      5\u001b[0m \u001b[0msorted_totals\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mstate_totals\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0morder_by\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m'count'\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mreverse\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mTrue\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+      "\u001b[0;31mAttributeError\u001b[0m: 'module' object has no attribute 'Length'"
+     ]
+    }
+   ],
+   "source": [
+    "state_totals = by_state.aggregate([\n",
+    "        ('count', agate.Length())\n",
+    "])\n",
+    "\n",
+    "sorted_totals = state_totals.order_by('count', reverse=True)\n",
+    "\n",
+    "sorted_totals.print_table(max_rows=5)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "with_years_in_prison = exonerations.compute([\n",
+    "    ('years_in_prison', agate.Change('convicted', 'exonerated'))\n",
+    "])\n",
+    "\n",
+    "state_totals = with_years_in_prison.group_by('state')\n",
+    "\n",
+    "medians = state_totals.aggregate([\n",
+    "    ('count', agate.Length()),\n",
+    "    ('median_years_in_prison', agate.Median('years_in_prison'))\n",
+    "])\n",
+    "\n",
+    "sorted_medians = medians.order_by('median_years_in_prison', reverse=True)\n",
+    "\n",
+    "sorted_medians.print_table(max_rows=5)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "# Filters rows without age data\n",
+    "only_with_age = with_years_in_prison.where(\n",
+    "    lambda r: r['age'] is not None\n",
+    ")\n",
+    "\n",
+    "# Group by race\n",
+    "race_groups = only_with_age.group_by('race')\n",
+    "\n",
+    "# Sub-group by age cohorts (20s, 30s, etc.)\n",
+    "race_and_age_groups = race_groups.group_by(\n",
+    "    lambda r: '%i0s' % (r['age'] // 10),\n",
+    "    key_name='age_group'\n",
+    ")\n",
+    "\n",
+    "# Aggregate medians for each group\n",
+    "medians = race_and_age_groups.aggregate([\n",
+    "    ('count', agate.Length()),\n",
+    "    ('median_years_in_prison', agate.Median('years_in_prison'))\n",
+    "])\n",
+    "\n",
+    "# Sort the results\n",
+    "sorted_groups = medians.order_by('median_years_in_prison', reverse=True)\n",
+    "\n",
+    "# Print out the results\n",
+    "sorted_groups.print_table(max_rows=10)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 2",
+   "language": "python",
+   "name": "python2"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 2
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython2",
+   "version": "2.7.11"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 0
+}
